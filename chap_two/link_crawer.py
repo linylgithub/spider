@@ -35,14 +35,14 @@ def link_crawler(seed_url, link_regex=None, delay=5, max_depth=-1, max_urls=-1, 
             throttle.wait(url)
             html = download(url, headers, proxy=proxy, num_retries=num_retries)
             links = []
-            if scrape_callback:
+            if scrape_callback and re.search('/places/default/view', url):
                 links.extend(scrape_callback(url, html) or [])
 
             if depth != max_depth:
                 # can still crawl further
                 if link_regex:
                     # filter for links matching our regular expression
-                    links.extend(link for link in get_links(html) if re.match(link_regex, link))
+                    links.extend([link for link in get_links(html) if re.match(link_regex, link)])
 
                 for link in links:
                     link = normalize(seed_url, link)
@@ -140,6 +140,8 @@ def get_links(html):
 
 
 if __name__ == '__main__':
-    link_crawler('http://example.webscraping.com', '/(index|view)', delay=0, num_retries=1, user_agent='BadCrawler')
-    link_crawler('http://example.webscraping.com', '/(index|view)', delay=0, num_retries=1, max_depth=1,
-                 user_agent='GoodCrawler')
+    # link_crawler('http://example.webscraping.com', '/(index|view)', delay=0, num_retries=1, user_agent='BadCrawler')
+    # link_crawler('http://example.webscraping.com', '/(index|view)', delay=0, num_retries=1, max_depth=1,
+    #              user_agent='GoodCrawler')
+    from scrape_callback import ScrapeCallback
+    link_crawler('http://example.webscraping.com', '(/places/default/view)|(/places/default/index)', max_depth=200, scrape_callback=ScrapeCallback())
